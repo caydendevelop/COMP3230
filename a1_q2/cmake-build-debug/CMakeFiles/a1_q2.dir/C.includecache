@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/cayden/COMP3230/a1_q2/assign1_q2_funcs.h
+stdbool.h
+-
+
+/Users/cayden/COMP3230/a1_q2/main.c
+assign1_q2_funcs.h
+/Users/cayden/COMP3230/a1_q2/assign1_q2_funcs.h
+math.h
+-
+stdlib.h
+-
+stdio.h
+-
+stdint.h
+-
+time.h
+-
+unistd.h
+-
+
