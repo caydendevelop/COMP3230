@@ -229,7 +229,7 @@ void mergesort4Way4Processes(int* array, int low, int high)
     }
 
     else { // Parent process
-        // kill(fpid_1, SIGSTOP); // send signal to stop the Child process 1
+
         pid_t fpid_2 = fork(); // fork the 2nd Child process
         if(fpid_2 < 0)
             printf("Error in executing fork!");
@@ -249,7 +249,7 @@ void mergesort4Way4Processes(int* array, int low, int high)
         }
 
         else { // Parent process
-            // kill(fpid_2, SIGSTOP); // send signal to stop the Child process 2
+
             pid_t fpid_3 = fork(); // fork the 3rd Child process
             if(fpid_3 < 0)
                 printf("Error in executing fork!");
@@ -268,7 +268,7 @@ void mergesort4Way4Processes(int* array, int low, int high)
             }
 
             else { // Parent process
-                // kill(fpid_1, SIGSTOP); // send signal to stop the Child process 1
+               
                 shmp = shmat(shmid, 0, 0);  // Attach the program to the memory.
 
                 for (int i = 3*n; i < high; i++) { // copy 12-15 array element to shmp
