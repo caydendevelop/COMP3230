@@ -206,9 +206,8 @@ void mergesort4Way4Processes(int* array, int low, int high)
 {
 	// Q2.1: Write your solution
     int shmid;
-    int *shmc_1, *shmc_2, *shmc_3, *shmp;
-//    int i = 0;
-//    int j = 0;
+    int *shmc_1, *shmp;
+    int n = high / 4;
     int size_data = (high + 1) * sizeof(int);
     shmid = shmget(IPC_PRIVATE, size_data, 0666 |IPC_CREAT);
 
@@ -219,7 +218,7 @@ void mergesort4Way4Processes(int* array, int low, int high)
     else if(fpid_1 == 0) { // Child process 1
         shmc_1 = shmat(shmid, 0, 0);  // Attach the program to the memory.
 
-        for (int i = 0; i < 4; i++) { // copy 0-3 array element to shmc_1
+        for (int i = 0; i < n; i++) { // copy 0-3 array element to shmc_1
             *(shmc_1 + i) = array[i];
         }
 
@@ -236,16 +235,16 @@ void mergesort4Way4Processes(int* array, int low, int high)
             printf("Error in executing fork!");
 
         else if(fpid_2 == 0) { // Child process 2
-            shmc_2 = shmat(shmid, 0, 0);  // Attach the program to the memory.
+            shmc_1 = shmat(shmid, 0, 0);  // Attach the program to the memory.
 
-            for (int i = 4; i < 8; i++) { // copy 4-7 array element to shmc_2
-                *(shmc_2 + i) = array[i];
+            for (int i = n; i < 2*n; i++) { // copy 4-7 array element to shmc_1
+                *(shmc_1 + i) = array[i];
             }
 
-            mergesort_4_way_rec(shmc_2, 4, 8);
-            printf("Process 2 ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), high/4,  *(shmc_2 + 4), *(shmc_2 + 5), *(shmc_2 + 6), *(shmc_2 + 7));
+            mergesort_4_way_rec(shmc_1, 4, 8);
+            printf("Process 2 ID: %d; Sorted %d integers: %d %d %d %d\n", getpid(), high/4, *(shmc_1 + n), *(shmc_1 + n + 1), *(shmc_1 + n + 2), *(shmc_1 + n + 3));
 
-            shmdt(shmc_2);                // Detach the program from the memory
+            shmdt(shmc_1);                // Detach the program from the memory
             _exit(0);
         }
 
@@ -256,28 +255,28 @@ void mergesort4Way4Processes(int* array, int low, int high)
                 printf("Error in executing fork!");
 
             else if(fpid_3 == 0) { // Child process 3
-                shmc_3 = shmat(shmid, 0, 0);  // Attach the program to the memory.
+                shmc_1 = shmat(shmid, 0, 0);  // Attach the program to the memory.
 
-                for (int i = 8; i < 12; i++) { // copy 8-11 array element to shmc_3
-                    *(shmc_3 + i) = array[i];
+                for (int i = 2*n; i < 3*n; i++) { // copy 8-11 array element to shmc_1
+                    *(shmc_1 + i) = array[i];
                 }
 
-                mergesort_4_way_rec(shmc_3, 8, 12);
-                printf("Process 3 ID: %d; Sorted %d integers: %d %d %d %d\n", getpid(), high/4, *(shmc_3 + 8), *(shmc_3 + 9), *(shmc_3 + 10), *(shmc_3 + 11));
-                shmdt(shmc_3);                // Detach the program from the memory
+                mergesort_4_way_rec(shmc_1, 8, 12);
+                printf("Process 3 ID: %d; Sorted %d integers: %d %d %d %d\n", getpid(), high/4, *(shmc_1 + 2*n), *(shmc_1 + 2*n + 1), *(shmc_1 + 2*n + 2), *(shmc_1 + 2*n + 3));
+                shmdt(shmc_1);                // Detach the program from the memory
                 _exit(0);
             }
 
             else { // Parent process
-                kill(fpid_1, SIGSTOP); // send signal to stop the Child process 1
+                // kill(fpid_1, SIGSTOP); // send signal to stop the Child process 1
                 shmp = shmat(shmid, 0, 0);  // Attach the program to the memory.
 
-                for (int i = 12; i < 16; i++) { // copy 12-15 array element to shmp
+                for (int i = 3*n; i < high; i++) { // copy 12-15 array element to shmp
                     *(shmp + i) = array[i];
                 }
                 mergesort_4_way_rec(shmp, 12, 16);
-                printf("Process P ID: %d; Sorted %d integers: %d %d %d %d\n", getpid(), high/4,  *(shmp + 12), *(shmp + 13), *(shmp + 14), *(shmp + 15));
-                kill(fpid_1, SIGCONT); // send signal to Child process 1. tell it to continue.
+                printf("Process P ID: %d; Sorted %d integers: %d %d %d %d\n", getpid(), high/4,  *(shmp + 3*n), *(shmp + 3*n + 1), *(shmp + 3*n + 2), *(shmp + 3*n + 3));
+                // kill(fpid_1, SIGCONT); // send signal to Child process 1. tell it to continue.
 
                 while(wait(NULL) >0); // wait all child process
                 mergesort_4_way_rec(shmp, 0, 16);
