@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/cayden/COMP3230/a1_q1/main.c
+stdio.h
+-
+stdlib.h
+-
+sys/wait.h
+-
+unistd.h
+-
+string.h
+-
+sys/types.h
+-
+sys/ipc.h
+-
+sys/shm.h
+-
+
