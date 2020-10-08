@@ -224,7 +224,7 @@ void mergesort4Way4Processes(int* array, int low, int high)
         }
 
         mergesort_4_way_rec(shmc_1, 0, 4);
-        printf("Process ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), *(shmc_1), *(shmc_1 + 1), *(shmc_1 + 2), *(shmc_1 + 3));
+        printf("Process 1 ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), *(shmc_1), *(shmc_1 + 1), *(shmc_1 + 2), *(shmc_1 + 3));
         shmdt(shmc_1);                // Detach the program from the memory
         _exit(0);
     }
@@ -243,7 +243,7 @@ void mergesort4Way4Processes(int* array, int low, int high)
             }
 
             mergesort_4_way_rec(shmc_2, 4, 8);
-            printf("Process ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), *(shmc_2 + 4), *(shmc_2 + 5), *(shmc_2 + 6), *(shmc_2 + 7));
+            printf("Process 2 ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), *(shmc_2 + 4), *(shmc_2 + 5), *(shmc_2 + 6), *(shmc_2 + 7));
 
             shmdt(shmc_2);                // Detach the program from the memory
             _exit(0);
@@ -263,29 +263,32 @@ void mergesort4Way4Processes(int* array, int low, int high)
                 }
 
                 mergesort_4_way_rec(shmc_3, 8, 12);
-                printf("Process ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), *(shmc_3 + 8), *(shmc_3 + 9), *(shmc_3 + 10), *(shmc_3 + 11));
+                printf("Process 3 ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), *(shmc_3 + 8), *(shmc_3 + 9), *(shmc_3 + 10), *(shmc_3 + 11));
                 shmdt(shmc_3);                // Detach the program from the memory
                 _exit(0);
             }
 
             else { // Parent process
-
+                kill(fpid_1, SIGSTOP); // send signal to stop the Child process 1
                 shmp = shmat(shmid, 0, 0);  // Attach the program to the memory.
 
                 for (int i = 12; i < 16; i++) { // copy 12-15 array element to shmp
                     *(shmp + i) = array[i];
                 }
-
                 mergesort_4_way_rec(shmp, 12, 16);
-                printf("Process ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), *(shmp + 12), *(shmp + 13), *(shmp + 14), *(shmp + 15));
-                printf("Process ID: %d; Sorted 16 integers: ", getpid());
+                printf("Process P ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), *(shmp + 12), *(shmp + 13), *(shmp + 14), *(shmp + 15));
+                kill(fpid_1, SIGCONT); // send signal to Child process 1. tell it to continue.
+
+                while(wait(NULL) >0); // wait all child process
+                mergesort_4_way_rec(shmp, 0, 16);
+                printf("Process P ID: %d; Sorted 16 integers: ", getpid());
 
                 for(int i = 0; i < 16; i++){
                     printf("%d ", *(shmp + i));
                 }
                 printf("\n");
                 shmdt(shmp);                  // Detach the program from the memory
-                while(wait(NULL) >0); // wait all child process
+
                 shmctl(shmid, IPC_RMID, NULL);
             }
         }
