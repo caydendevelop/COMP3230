@@ -1,9 +1,16 @@
 #include "assign1_q2_funcs.h"
-
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <signal.h> // for using kill()
+#include <sys/shm.h>  // for using shared memory
+
 
 // Merge sort solution of Tutorial 1
 void merge_4_way(int* array, int low, int mid1, int mid2, int mid3, int high) {
@@ -198,9 +205,83 @@ bool verifySortResults(int* array_bubble, int* array_mergesort, int size)
 void mergesort4Way4Processes(int* array, int low, int high)
 {
 	// Q2.1: Write your solution
-	
-	
+    int shmid;
+    int *shmc_1, *shmc_2, *shmc_3, *shmp;
+//    int i = 0;
+//    int j = 0;
+    int size_data = (high + 1) * sizeof(int);
+    shmid = shmget(IPC_PRIVATE, size_data, 0666 |IPC_CREAT);
 
+    pid_t fpid_1 = fork(); // fork the 1st Child process
+    if(fpid_1 < 0)
+        printf("Error in executing fork!");
+
+    else if(fpid_1 == 0) { // Child process 1
+        shmc_1 = shmat(shmid, 0, 0);  // Attach the program to the memory.
+
+        for (int i = 0; i < 4; i++) { // copy 0-3 array element to shmc_1
+            *(shmc_1 + i) = array[i];
+        }
+
+        mergesort_4_way_rec(shmc_1, 0, 4);
+
+        shmdt(shmc_1);                // Detach the program from the memory
+        _exit(0);
+    }
+
+    else { // Parent process
+        // kill(fpid_1, SIGSTOP); // send signal to stop the Child process 1
+        pid_t fpid_2 = fork(); // fork the 2nd Child process
+        if(fpid_2 < 0)
+            printf("Error in executing fork!");
+
+        else if(fpid_2 == 0) { // Child process 2
+            shmc_2 = shmat(shmid, 0, 0);  // Attach the program to the memory.
+
+            for (int i = 4; i < 8; i++) { // copy 4-7 array element to shmc_2
+                *(shmc_2 + i) = array[i];
+            }
+
+            mergesort_4_way_rec(shmc_2, 4, 8);
+
+            shmdt(shmc_2);                // Detach the program from the memory
+            _exit(0);
+        }
+
+        else { // Parent process
+            // kill(fpid_2, SIGSTOP); // send signal to stop the Child process 2
+            pid_t fpid_3 = fork(); // fork the 3rd Child process
+            if(fpid_3 < 0)
+                printf("Error in executing fork!");
+
+            else if(fpid_3 == 0) { // Child process 3
+                shmc_3 = shmat(shmid, 0, 0);  // Attach the program to the memory.
+
+                for (int i = 8; i < 12; i++) { // copy 8-11 array element to shmc_3
+                    *(shmc_3 + i) = array[i];
+                }
+
+                mergesort_4_way_rec(shmc_3, 8, 12);
+
+                shmdt(shmc_3);                // Detach the program from the memory
+                _exit(0);
+            }
+
+            else { // Parent process
+                while(wait(NULL) >0); // wait all child process
+                shmp = shmat(shmid, 0, 0);  // Attach the program to the memory.
+
+                for (int i = 12; i < 16; i++) { // copy 12-15 array element to shmp
+                    *(shmp + i) = array[i];
+                }
+
+                mergesort_4_way_rec(shmp, 12, 16);
+                
+                shmdt(shmp);                  // Detach the program from the memory
+                shmctl(shmid, IPC_RMID, NULL);
+            }
+        }
+    }
 }
 
 void recursiveMergesort(int* array, int low, int high, int max_num)
