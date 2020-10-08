@@ -212,7 +212,7 @@ void recursiveMergesort(int* array, int low, int high, int max_num)
 }
 
 
-// Plase use the following lines to print related information if needed.
+// Please use the following lines to print related information if needed.
 /*
 printf("Process ID: %d; Sorted %d integers: ", getpid(), ***);
 printf("Process ID: %d; Merged %d integers: ", getpid(), ***);
