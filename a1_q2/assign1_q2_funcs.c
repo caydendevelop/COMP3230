@@ -202,97 +202,191 @@ bool verifySortResults(int* array_bubble, int* array_mergesort, int size)
 
 
 
-void mergesort4Way4Processes(int* array, int low, int high)
-{
-	// Q2.1: Write your solution
-    int shmid;
-    int *shmc_1, *shmp;
+void mergesort4Way4Processes(int* array, int low, int high) {
+    // Q2.1: Write your solution
+
+    int *shmc_1;
+    int shmid1, shmid2, shmid3;
+
+    int *counter_from_0;
+    int *counter_from_total_over_4;
     int n = high / 4;
-    int size_data = (high + 1) * sizeof(int);
-    shmid = shmget(IPC_PRIVATE, size_data, 0666 |IPC_CREAT);
+
+    int size_data1 = high * sizeof(int);
+    int size_data2 = 1 * sizeof(int);
+    int size_data3 = 1 * sizeof(int);
+
+
+    shmid1 = shmget(IPC_PRIVATE, size_data1, 0666 | IPC_CREAT);
+    shmid2 = shmget(IPC_PRIVATE, size_data2, 0666 | IPC_CREAT);
+    shmid3 = shmget(IPC_PRIVATE, size_data3, 0666 | IPC_CREAT);
+
 
     pid_t fpid_1 = fork(); // fork the 1st Child process
-    if(fpid_1 < 0)
+    if (fpid_1 < 0)
         printf("Error in executing fork!");
 
-    else if(fpid_1 == 0) { // Child process 1
-        shmc_1 = shmat(shmid, 0, 0);  // Attach the program to the memory.
+    else if (fpid_1 == 0) { // Child process 1
+        shmc_1 = shmat(shmid1, NULL, 0);
 
-        for (int i = 0; i < n; i++) { // copy 0-3 array element to shmc_1
+        counter_from_0 = shmat(shmid2, NULL, 0);
+        *counter_from_0 = low;
+
+        counter_from_total_over_4 = shmat(shmid3, NULL, 0);
+        *counter_from_total_over_4 = high / 4;
+
+        // printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+
+        for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) { // copy 0-4 array element to shmc_1
             *(shmc_1 + i) = array[i];
         }
 
-        mergesort_4_way_rec(shmc_1, 0, 4);
-        printf("Process 1 ID: %d; Sorted %d integers: %d %d %d %d\n", getpid(), high/4, *(shmc_1), *(shmc_1 + 1), *(shmc_1 + 2), *(shmc_1 + 3));
-        shmdt(shmc_1);                // Detach the program from the memory
-        _exit(0);
-    }
+        mergesort_4_way_rec(shmc_1, *counter_from_0, *counter_from_total_over_4);
 
-    else { // Parent process
+        printf("Process ID: %d; Sorted %d integers: ", getpid(), n);
+
+        for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
+            printf("%d ", *(shmc_1 + i));
+        }
+
+        printf("\n");
+
+        *counter_from_0 = *counter_from_0 + n;
+        *counter_from_total_over_4 = *counter_from_total_over_4 + n;
+
+        //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+
+
+
+        shmdt(shmc_1);
+        shmdt(counter_from_0);
+        shmdt(counter_from_total_over_4);
+
+        _exit(0);
+    } else { // Parent process
 
         pid_t fpid_2 = fork(); // fork the 2nd Child process
-        if(fpid_2 < 0)
+        if (fpid_2 < 0)
             printf("Error in executing fork!");
 
-        else if(fpid_2 == 0) { // Child process 2
-            shmc_1 = shmat(shmid, 0, 0);  // Attach the program to the memory.
+        else if (fpid_2 == 0) { // Child process 2
+            shmc_1 = shmat(shmid1, NULL, 0);
+            counter_from_0 = shmat(shmid2, NULL, 0);
+            counter_from_total_over_4 = shmat(shmid3, NULL, 0);
 
-            for (int i = n; i < 2*n; i++) { // copy 4-7 array element to shmc_1
+            //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+
+            for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
                 *(shmc_1 + i) = array[i];
             }
 
-            mergesort_4_way_rec(shmc_1, 4, 8);
-            printf("Process 2 ID: %d; Sorted %d integers: %d %d %d %d\n", getpid(), high/4, *(shmc_1 + n), *(shmc_1 + n + 1), *(shmc_1 + n + 2), *(shmc_1 + n + 3));
+            mergesort_4_way_rec(shmc_1, *counter_from_0, *counter_from_total_over_4);
 
-            shmdt(shmc_1);                // Detach the program from the memory
+            printf("Process ID: %d; Sorted %d integers: ", getpid(), n);
+
+            for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
+                printf("%d ", *(shmc_1 + i));
+            }
+
+            printf("\n");
+
+            *counter_from_0 = *counter_from_0 + n;
+            *counter_from_total_over_4 = *counter_from_total_over_4 + n;
+
+            //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+
+            shmdt(shmc_1);
+            shmdt(counter_from_0);
+            shmdt(counter_from_total_over_4);
+
             _exit(0);
-        }
 
-        else { // Parent process
+        } else { // Parent process
 
             pid_t fpid_3 = fork(); // fork the 3rd Child process
-            if(fpid_3 < 0)
+            if (fpid_3 < 0)
                 printf("Error in executing fork!");
 
-            else if(fpid_3 == 0) { // Child process 3
-                shmc_1 = shmat(shmid, 0, 0);  // Attach the program to the memory.
+            else if (fpid_3 == 0) { // Child process 3
+                shmc_1 = shmat(shmid1, NULL, 0);
+                counter_from_0 = shmat(shmid2, NULL, 0);
+                counter_from_total_over_4 = shmat(shmid3, NULL, 0);
 
-                for (int i = 2*n; i < 3*n; i++) { // copy 8-11 array element to shmc_1
+                //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+
+                for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
                     *(shmc_1 + i) = array[i];
                 }
 
-                mergesort_4_way_rec(shmc_1, 8, 12);
-                printf("Process 3 ID: %d; Sorted %d integers: %d %d %d %d\n", getpid(), high/4, *(shmc_1 + 2*n), *(shmc_1 + 2*n + 1), *(shmc_1 + 2*n + 2), *(shmc_1 + 2*n + 3));
-                shmdt(shmc_1);                // Detach the program from the memory
-                _exit(0);
-            }
+                mergesort_4_way_rec(shmc_1, *counter_from_0, *counter_from_total_over_4);
 
-            else { // Parent process
-               
-                shmp = shmat(shmid, 0, 0);  // Attach the program to the memory.
+                printf("Process ID: %d; Sorted %d integers: ", getpid(), n);
 
-                for (int i = 3*n; i < high; i++) { // copy 12-15 array element to shmp
-                    *(shmp + i) = array[i];
+                for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
+                    printf("%d ", *(shmc_1 + i));
                 }
-                mergesort_4_way_rec(shmp, 12, 16);
-                printf("Process P ID: %d; Sorted %d integers: %d %d %d %d\n", getpid(), high/4,  *(shmp + 3*n), *(shmp + 3*n + 1), *(shmp + 3*n + 2), *(shmp + 3*n + 3));
-                // kill(fpid_1, SIGCONT); // send signal to Child process 1. tell it to continue.
 
-                while(wait(NULL) >0); // wait all child process
-                mergesort_4_way_rec(shmp, 0, 16);
-                printf("Process P ID: %d; Sorted %d integers: ", getpid(), high);
+                printf("\n");
 
-                for(int i = 0; i < high; i++){
-                    printf("%d ", *(shmp + i));
+                *counter_from_0 = *counter_from_0 + n;
+                *counter_from_total_over_4 = *counter_from_total_over_4 + n;
+
+                //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+
+                shmdt(shmc_1);
+                shmdt(counter_from_0);
+                shmdt(counter_from_total_over_4);
+
+                _exit(0);
+
+            } else { // Parent process
+
+                while (wait(NULL) > 0); // wait all child process
+
+                shmc_1 = shmat(shmid1, NULL, 0);
+                counter_from_0 = shmat(shmid2, NULL, 0);
+                counter_from_total_over_4 = shmat(shmid3, NULL, 0);
+
+                //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+
+                for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
+                    *(shmc_1 + i) = array[i];
+                }
+
+                mergesort_4_way_rec(shmc_1, *counter_from_0, *counter_from_total_over_4);
+
+                printf("Process ID: %d; Sorted %d integers: ", getpid(), n);
+
+                for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
+                    printf("%d ", *(shmc_1 + i));
+                }
+
+                printf("\n");
+
+                *counter_from_0 = *counter_from_0 + n;
+                *counter_from_total_over_4 = *counter_from_total_over_4 + n;
+
+
+                mergesort_4_way_rec(shmc_1, low, high);
+                printf("Process ID: %d; Sorted %d integers: ", getpid(), high);
+
+                for (int i = low; i < high; i++) {
+                    printf("%d ", *(shmc_1 + i));
                 }
                 printf("\n");
-                shmdt(shmp);                  // Detach the program from the memory
+                shmdt(shmc_1);
+                shmdt(counter_from_0);
+                shmdt(counter_from_total_over_4);
 
-                shmctl(shmid, IPC_RMID, NULL);
+                shmctl(shmid1, IPC_RMID, NULL);
+                shmctl(shmid2, IPC_RMID, NULL);
+                shmctl(shmid3, IPC_RMID, NULL);
+
             }
         }
     }
 }
+
 
 void recursiveMergesort(int* array, int low, int high, int max_num)
 {
