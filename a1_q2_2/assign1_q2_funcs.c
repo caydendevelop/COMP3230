@@ -350,9 +350,9 @@ void recursiveMergesort(int* array, int low, int high, int max_num, int i, int n
                 mergesort_4_way_rec(shm_array, each_part * 3 + low, each_part * 4 + low);
                 printf("Process P ID: %d; Sorted %d integers: ", getpid(), each_part);
                 printArray(shm_array, each_part * 3 + low, each_part * 4 + low);
-                recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) + low, each_part * pow(4, n - i - 1) * 2 + low, each_part, i + 1, n);
-                recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 2 + low, each_part * pow(4, n - i - 1) * 3 + low, each_part, i + 1, n);
-                recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 3 + low, each_part * pow(4, n - i - 1) * 4 + low, each_part, i + 1, n);
+                //recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) + low, each_part * pow(4, n - i - 1) * 2 + low, each_part, i + 1, n);
+                //recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 2 + low, each_part * pow(4, n - i - 1) * 3 + low, each_part, i + 1, n);
+                //recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 3 + low, each_part * pow(4, n - i - 1) * 4 + low, each_part, i + 1, n);
 
                 while(wait(NULL)>0);
                 mergesort_4_way_rec(shm_array, low, high);
