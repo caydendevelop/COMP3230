@@ -216,7 +216,7 @@ void mergesort4Way4Processes(int* array, int low, int high) {
     if (fpid_1 < 0)
         printf("Error in executing fork!");
     else if (fpid_1 == 0) { // Child process 1
-        mergesort_4_way_rec(array, each_part * 0, each_part * 1);
+        mergesort_4_way_rec(array, each_part * 0, each_part * 1);  // sort
         printf("Process 1 ID: %d; Sorted %d integers: ", getpid(), each_part);
         printArray(array, each_part * 0, each_part * 1);
         exit(0);
@@ -226,7 +226,7 @@ void mergesort4Way4Processes(int* array, int low, int high) {
         if (fpid_2 < 0)
             printf("Error in executing fork!");
         else if (fpid_2 == 0) { // Child process 2
-            mergesort_4_way_rec(array, each_part * 1, each_part * 2);
+            mergesort_4_way_rec(array, each_part * 1, each_part * 2);  // sort
             printf("Process 1 ID: %d; Sorted %d integers: ", getpid(), each_part);
             printArray(array, each_part * 1, each_part * 2);
             exit(0);
@@ -236,17 +236,17 @@ void mergesort4Way4Processes(int* array, int low, int high) {
             if (fpid_3 < 0)
                 printf("Error in executing fork!");
             else if (fpid_3 == 0) { // Child process 3
-                mergesort_4_way_rec(array, each_part * 2, each_part * 3);
+                mergesort_4_way_rec(array, each_part * 2, each_part * 3);  // sort
                 printf("Process 1 ID: %d; Sorted %d integers: ", getpid(), each_part);
                 printArray(array, each_part * 2, each_part * 3);
                 exit(0);
             }
             else{ // Parent process
-                mergesort_4_way_rec(array, each_part * 3, each_part * 4);
+                mergesort_4_way_rec(array, each_part * 3, each_part * 4);  // sort
                 printf("Process 1 ID: %d; Sorted %d integers: ", getpid(), each_part);
                 printArray(array, each_part * 3, each_part * 4);
                 while(wait(NULL)>0);
-                merge_4_way(array, low, mid1, mid2, mid3, high);
+                merge_4_way(array, low, mid1, mid2, mid3, high); // merge the sorted array
                 printf("Process P ID: %d; Sorted %d integers: ", getpid(), array_size);
                 printArray(array, low, high);
             }
@@ -262,9 +262,9 @@ void recursiveMergesort(int* array, int low, int high, int max_num)
     int arraySize = high - low;
     int each_part = arraySize / 4;
 
-    // End the recursion loop : sort the integers if the arraySize is <= 4
+    // Most important code!! End the recursion loop and sort the integers ONLY if the arraySize is <= 4
     if (arraySize <= 4) {
-        mergesort_4_way_rec(array, low, high);
+        mergesort_4_way_rec(array, low, high); // only sort at here
         printf("Process ID: %d; Sorted %d integers: ", getpid(), arraySize);
         printArray(array, low, high);
         return;
@@ -273,25 +273,6 @@ void recursiveMergesort(int* array, int low, int high, int max_num)
     int mid1 = low + each_part;
     int mid2 = mid1 + each_part;
     int mid3 = mid2 + each_part;
-
-//    pid_t pid[3]; // divide into 4 smaller process
-//    for (int i = 0; i < 3; i++){
-//        pid[i] = fork();
-//        if (pid[i] == 0) {
-//            if (i == 0){
-//                recursiveMergesort(array, mid1, mid2, max_num); // Child 1 do Sort
-//                _exit(0);
-//            }
-//            if (i == 1){
-//                recursiveMergesort(array, mid2, mid3, max_num); // Child 2 do Sort
-//                _exit(0);
-//            }
-//            if (i == 2){
-//                recursiveMergesort(array, mid3, high, max_num); // Child 3 do Sort
-//                _exit(0);
-//            }
-//        }
-//    }
 
     pid_t fpid_1 = fork(); // fork the 1st Child process
     if (fpid_1 < 0)
@@ -318,8 +299,8 @@ void recursiveMergesort(int* array, int low, int high, int max_num)
             }
             else{ // Parent process
                 recursiveMergesort(array, mid3, high, max_num);
-                while(wait(NULL)>0);
-                merge_4_way(array, low, mid1, mid2, mid3, high);
+                while(wait(NULL)>0);  // wait all child to finished
+                merge_4_way(array, low, mid1, mid2, mid3, high); // merge the sorted array
                 printf("Process ID: %d; Merged %d integers: ", getpid(), arraySize);
                 printArray(array, low, high);
             }
