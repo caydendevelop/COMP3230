@@ -1,4 +1,4 @@
-# Install script for directory: /Users/cayden/COMP3230/a1_q2
+# Install script for directory: /Users/cayden/COMP3230/a1_q2_2
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,5 +40,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/cayden/COMP3230/a1_q2/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/cayden/COMP3230/a1_q2_2/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
