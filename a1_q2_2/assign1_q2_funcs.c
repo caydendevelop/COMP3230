@@ -279,96 +279,178 @@ void mergesort4Way4Processes(int* array, int low, int high) {
 
 
 
-void recursiveMergesort(int* array, int low, int high, int max_num, int i, int n)
-{
+void recursiveMergesort(int* array, int low, int high, int max_num, int i, int n) {
     // max_num: the maximum number of integers a process can handle
     // Q2.2 Write your solution
-    if(high < 4)
+    if (i + 1 > n) {
         return;
-
-
+    }
+    //printf("Params : %d, %d, %d, %d, %d\n", low, high, max_num, i, n);
     int array_size = high - low;
     int each_part = max_num;
-    int shmid;
-    int *shm_array;
-    int size_data = array_size * sizeof(int);
+    int shmid = shmget(IPC_PRIVATE, array_size * sizeof(int), 0666 | IPC_CREAT);
+    int *shm_array = shmat(shmid, NULL, 0);
+    pid_t fpid_1, fpid_2, fpid_3;
 
-    shmid = shmget(IPC_PRIVATE, size_data, 0666 | IPC_CREAT);
-
-    shm_array = shmat(shmid, NULL, 0);
-    for (int i = 0; i < array_size; i++) {
-        *(shm_array + i) = array[i];
+    for (int j = low; j < high; j++) {
+        *(shm_array+j) = *&array[j];
+        //printf("%d : %d\n", j, *&shm_array[j]);
     }
 
-    pid_t fpid_1 = fork(); // fork the 1st Child process
-    if (fpid_1 < 0)
-        printf("Error in executing fork!");
-
-    else if (fpid_1 == 0) { // Child process 1
+    fpid_1 = fork(); //CHILD 1
+    if (fpid_1 < 0) {
+        printf("Error creating child!\n");
+    } else if (fpid_1 == 0) {
         shm_array = shmat(shmid, NULL, 0);
-        recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) + low, each_part * pow(4, n - i - 1) * 2 + low, each_part, i + 1, n);
-        mergesort_4_way_rec(shm_array, low, each_part + low);  //mergesort_4_way_rec(shm_array, 0, each_part);
-        printf("Process 1 ID: %d; Sorted %d integers: ", getpid(), each_part);
+
+        recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) + low, each_part * pow(4, n - i - 1) * 2 + low,
+                           each_part, i + 1, n);
+
+        mergesort_4_way_rec(shm_array, low, each_part + low);
+        printf("1, %d, Process ID: %d; Sorted %d integers: ", getppid(), getpid(), each_part);
         printArray(shm_array, low, each_part + low);
-
         shmdt(shm_array);
-        exit(0);
-    }
-    else{ // Parent process
-
-        pid_t fpid_2 = fork(); // fork the 2nd Child process
-        if (fpid_2 < 0)
-            printf("Error in executing fork!");
-        else if (fpid_2 == 0) { // Child process 2
+        _exit(0);
+        //CHILD 2
+    } else {
+        fpid_2 = fork();
+        if (fpid_2 < 0) {
+            printf("Error creating child!\n");
+        } else if (fpid_2 == 0) {
             shm_array = shmat(shmid, NULL, 0);
-            recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 2 + low, each_part * pow(4, n - i - 1) * 3 + low, each_part, i + 1, n);
+
+            recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 2 + low, each_part * pow(4, n - i - 1) * 3 + low,
+                               each_part, i + 1, n);
+
             mergesort_4_way_rec(shm_array, each_part + low, each_part * 2 + low);
-            printf("Process 2 ID: %d; Sorted %d integers: ", getpid(), each_part);
+            printf("2, %d, Process ID: %d; Sorted %d integers: ", getppid(), getpid(), each_part);
             printArray(shm_array, each_part + low, each_part * 2 + low);
-
             shmdt(shm_array);
-            exit(0);
-        }
-        else{ // Parent process
-
-            pid_t fpid_3 = fork(); // fork the 3rd Child process
-            if (fpid_3 < 0)
-                printf("Error in executing fork!");
-
-            else if (fpid_3 == 0) { // Child process 3
+            _exit(0);
+            //CHILD 3
+        } else {
+            fpid_3 = fork();
+            if (fpid_3 < 0) {
+                printf("Error creating child!\n");
+            } else if (fpid_3 == 0) {
                 shm_array = shmat(shmid, NULL, 0);
-                recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 3 + low, each_part * pow(4, n - i - 1) * 4 + low, each_part, i + 1, n);
-                mergesort_4_way_rec(shm_array, each_part * 2 + low, each_part * 3 + low);
-                printf("Process 3 ID: %d; Sorted %d integers: ", getpid(), each_part);
-                printArray(shm_array, each_part * 2 + low, each_part * 3 + low);
 
+                recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 3 + low, each_part * pow(4, n - i - 1) * 4 + low,
+                                   each_part, i + 1, n);
+
+                mergesort_4_way_rec(shm_array, each_part * 2 + low, each_part * 3 + low);
+                printf("3, %d, Process ID: %d; Sorted %d integers: ", getppid(), getpid(), each_part);
+                printArray(shm_array, each_part * 2 + low, each_part * 3 + low);
                 shmdt(shm_array);
-                exit(0);
-            }
-            else{ // Parent process
+                _exit(0);
+
+            }else {
                 shm_array = shmat(shmid, NULL, 0);
                 mergesort_4_way_rec(shm_array, each_part * 3 + low, each_part * 4 + low);
-                printf("Process P ID: %d; Sorted %d integers: ", getpid(), each_part);
+                printf("4, %d, Process ID: %d; Sorted %d integers: ", getppid(), getpid(), each_part);
                 printArray(shm_array, each_part * 3 + low, each_part * 4 + low);
-                //recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) + low, each_part * pow(4, n - i - 1) * 2 + low, each_part, i + 1, n);
-                //recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 2 + low, each_part * pow(4, n - i - 1) * 3 + low, each_part, i + 1, n);
-                //recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 3 + low, each_part * pow(4, n - i - 1) * 4 + low, each_part, i + 1, n);
+                while(wait(NULL)>0);
 
+//                recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) + low, each_part * pow(4, n - i - 1) * 2 + low,
+//                                   each_part, i + 1, n);
+//                recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 2 + low, each_part * pow(4, n - i - 1) * 3 + low,
+//                                   each_part, i + 1, n);
+//                recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 3 + low, each_part * pow(4, n - i - 1) * 4 + low,
+//                                   each_part, i + 1, n);
                 while(wait(NULL)>0);
                 mergesort_4_way_rec(shm_array, low, high);
-                printf("Process P ID: %d; Sorted %d integers: ", getpid(), array_size);
+                printf("Final, %d, Process ID: %d; Merged %d integers: ", getppid(), getpid(), array_size);
                 printArray(shm_array, low, high);
-                for (int i = 0; i < array_size; i++) {
-                    *&array[i] = *(shm_array + i);
+                for (int i = low; i < high; i++) {
+                    *&array[i] = *(shm_array+i);
                 }
                 shmdt(shm_array);
                 shmctl(shmid, IPC_RMID, NULL);
 
             }
+//            shmdt(shm_array);
+//            shmctl(shmid, IPC_RMID, NULL);
         }
     }
-
 }
+//    if (i + 1 > n) {
+//        return;
+//    }
+//    int *shm_array;
+//    int shmid;
+//    int array_size = high - low;
+//    int each_part = max_num;
+//    int size_data = array_size * sizeof(int);
+//    shmid = shmget(IPC_PRIVATE, size_data, 0666 | IPC_CREAT);
+//
+//    shm_array = shmat(shmid, NULL, 0);
+//    for (int i = 0; i < array_size; i++) {
+//        *(shm_array + i) = array[i];
+//    }
+//
+//    pid_t fpid_1 = fork(); // fork the 1st Child process
+//    if (fpid_1 < 0)
+//        printf("Error in executing fork!");
+//
+//    else if (fpid_1 == 0) { // Child process 1
+//        shm_array = shmat(shmid, NULL, 0);
+//        mergesort_4_way_rec(shm_array, low, each_part + low);
+//        printf("Process P ID: %d; Sorted %d integers: ", getpid(), each_part);
+//        printArray(shm_array, each_part + low, each_part + low);
+//        shmdt(shm_array);
+//        exit(0);
+//    }
+//    else{ // Parent process
+//
+//        pid_t fpid_2 = fork(); // fork the 2nd Child process
+//        if (fpid_2 < 0)
+//            printf("Error in executing fork!");
+//        else if (fpid_2 == 0) { // Child process 2
+//            shm_array = shmat(shmid, NULL, 0);
+//            mergesort_4_way_rec(shm_array, each_part*1 + low, each_part*2 + low);
+//            printf("Process P ID: %d; Sorted %d integers: ", getpid(), each_part);
+//            printArray(shm_array, each_part*1 + low, each_part*2 + low);
+//            shmdt(shm_array);
+//            exit(0);
+//        }
+//        else{ // Parent process
+//
+//            pid_t fpid_3 = fork(); // fork the 3rd Child process
+//            if (fpid_3 < 0)
+//                printf("Error in executing fork!");
+//
+//            else if (fpid_3 == 0) { // Child process 3
+//                shm_array = shmat(shmid, NULL, 0);
+//                mergesort_4_way_rec(shm_array, each_part*2 + low, each_part*3 + low);
+//                printf("Process P ID: %d; Sorted %d integers: ", getpid(), each_part);
+//                printArray(shm_array, each_part*2 + low, each_part*3 + low);
+//                shmdt(shm_array);
+//                exit(0);
+//            }
+//            else{ // Parent process
+//
+//                mergesort_4_way_rec(shm_array, each_part*3 + low, each_part*4 + low);
+//                printf("Process P ID: %d; Sorted %d integers: ", getpid(), each_part);
+//                printArray(shm_array, each_part*3 + low, each_part*4 + low);
+//
+//                recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) + low, each_part * pow(4, n - i - 1) * 2 + low, each_part, i + 1, n);
+//                recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 2 + low, each_part * pow(4, n - i - 1) * 3 + low, each_part, i + 1, n);
+//                recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 3 + low, each_part * pow(4, n - i - 1) * 4 + low, each_part, i + 1, n);
+//
+//                while(wait(NULL)>0);
+//                mergesort_4_way_rec(shm_array, low, high);
+//                printf("Process P ID: %d; Sorted %d integers: ", getpid(), array_size);
+//                printArray(shm_array, low, high);
+//                for (int i = 0; i < array_size; i++) {
+//                    *&array[i] = *(shm_array + i);
+//                }
+//                shmdt(shm_array);
+//                shmctl(shmid, IPC_RMID, NULL);
+//
+//            }
+//        }
+//    }
+
 
 
 // Please use the following lines to print related information if needed.
