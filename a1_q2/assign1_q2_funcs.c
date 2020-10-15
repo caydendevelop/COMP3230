@@ -262,7 +262,7 @@ void mergesort4Way4Processes(int* array, int low, int high) {
                 printArray(shm_array, each_part * 3, each_part * 4);
 
                 while(wait(NULL)>0);
-                mergesort_4_way_rec(shm_array, 0, array_size);
+                merge_4_way(shm_array, 0, each_part, each_part*2, each_part*3, array_size);
                 printf("Process P ID: %d; Sorted %d integers: ", getpid(), array_size);
                 printArray(shm_array, 0, array_size);
                 for (int i = 0; i < array_size; i++) {
