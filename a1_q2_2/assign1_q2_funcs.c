@@ -283,7 +283,7 @@ void recursiveMergesort(int* array, int low, int high, int max_num, int i, int n
 {
     // max_num: the maximum number of integers a process can handle
     // Q2.2 Write your solution
-    if(i+1 > n)
+    if(high < 4)
         return;
 
 
@@ -306,7 +306,7 @@ void recursiveMergesort(int* array, int low, int high, int max_num, int i, int n
 
     else if (fpid_1 == 0) { // Child process 1
         shm_array = shmat(shmid, NULL, 0);
-
+        recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) + low, each_part * pow(4, n - i - 1) * 2 + low, each_part, i + 1, n);
         mergesort_4_way_rec(shm_array, low, each_part + low);  //mergesort_4_way_rec(shm_array, 0, each_part);
         printf("Process 1 ID: %d; Sorted %d integers: ", getpid(), each_part);
         printArray(shm_array, low, each_part + low);
@@ -321,7 +321,7 @@ void recursiveMergesort(int* array, int low, int high, int max_num, int i, int n
             printf("Error in executing fork!");
         else if (fpid_2 == 0) { // Child process 2
             shm_array = shmat(shmid, NULL, 0);
-
+            recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 2 + low, each_part * pow(4, n - i - 1) * 3 + low, each_part, i + 1, n);
             mergesort_4_way_rec(shm_array, each_part + low, each_part * 2 + low);
             printf("Process 2 ID: %d; Sorted %d integers: ", getpid(), each_part);
             printArray(shm_array, each_part + low, each_part * 2 + low);
@@ -337,7 +337,7 @@ void recursiveMergesort(int* array, int low, int high, int max_num, int i, int n
 
             else if (fpid_3 == 0) { // Child process 3
                 shm_array = shmat(shmid, NULL, 0);
-
+                recursiveMergesort(shm_array, each_part * pow(4, n - i - 1) * 3 + low, each_part * pow(4, n - i - 1) * 4 + low, each_part, i + 1, n);
                 mergesort_4_way_rec(shm_array, each_part * 2 + low, each_part * 3 + low);
                 printf("Process 3 ID: %d; Sorted %d integers: ", getpid(), each_part);
                 printArray(shm_array, each_part * 2 + low, each_part * 3 + low);
@@ -346,6 +346,7 @@ void recursiveMergesort(int* array, int low, int high, int max_num, int i, int n
                 exit(0);
             }
             else{ // Parent process
+                shm_array = shmat(shmid, NULL, 0);
                 mergesort_4_way_rec(shm_array, each_part * 3 + low, each_part * 4 + low);
                 printf("Process P ID: %d; Sorted %d integers: ", getpid(), each_part);
                 printArray(shm_array, each_part * 3 + low, each_part * 4 + low);
