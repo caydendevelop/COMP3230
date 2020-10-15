@@ -21,7 +21,7 @@ bool verifySortResults(int* array_bubble, int* array_mergesort, int size);  // v
 *****/
 
 // merge sort
-void recursiveMergesort(int* array, int low, int high, int max_num);
+void recursiveMergesort(int* array, int low, int high, int max_num, int i, int n);
 void mergesort4Way4Processes(int* array, int low, int high);
 
 
