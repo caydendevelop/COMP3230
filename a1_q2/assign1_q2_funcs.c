@@ -256,6 +256,7 @@ void mergesort4Way4Processes(int* array, int low, int high) {
                 exit(0);
             }
             else{ // Parent process
+                shm_array = shmat(shmid, NULL, 0);
                 mergesort_4_way_rec(shm_array, each_part * 3, each_part * 4);
                 printf("Process P ID: %d; Sorted %d integers: ", getpid(), each_part);
                 printArray(shm_array, each_part * 3, each_part * 4);
