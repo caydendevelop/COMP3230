@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
 
     // sleep(1);  // This line is only for test. Remove this line when you implement your solution
 
-    mergesort4Way4Processes(pInputArray, 0, num_integers-1);
-    //recursiveMergesort();
+    mergesort4Way4Processes(pInputArray, 0, num_integers);
+    //recursiveMergesort(pInputArray, 0, num_integers, num_integers);
 
     clock_gettime(CLOCK_MONOTONIC_RAW, &end);
     printf("End timing.\n");
