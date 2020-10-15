@@ -204,195 +204,265 @@ bool verifySortResults(int* array_bubble, int* array_mergesort, int size)
 
 void mergesort4Way4Processes(int* array, int low, int high) {
     // Q2.1: Write your solution
+    int *shm_array;
+    int shmid;
+    int array_size = high - low;
+    int each_part = array_size / 4;
+    int size_data = array_size * sizeof(int);
+    shmid = shmget(IPC_PRIVATE, size_data, 0666 | IPC_CREAT);
 
-    int *shmc_1;
-    int shmid1, shmid2, shmid3;
-
-    int *counter_from_0;
-    int *counter_from_total_over_4;
-    int n = high / 4;
-
-    int size_data1 = high * sizeof(int);
-    int size_data2 = 1 * sizeof(int);
-    int size_data3 = 1 * sizeof(int);
-
-
-    shmid1 = shmget(IPC_PRIVATE, size_data1, 0666 | IPC_CREAT);
-    shmid2 = shmget(IPC_PRIVATE, size_data2, 0666 | IPC_CREAT);
-    shmid3 = shmget(IPC_PRIVATE, size_data3, 0666 | IPC_CREAT);
-
+    shm_array = shmat(shmid, NULL, 0);
+    for (int i = 0; i < array_size; i++) {
+        *(shm_array + i) = array[i];
+    }
 
     pid_t fpid_1 = fork(); // fork the 1st Child process
     if (fpid_1 < 0)
         printf("Error in executing fork!");
 
     else if (fpid_1 == 0) { // Child process 1
-        shmc_1 = shmat(shmid1, NULL, 0);
-
-        counter_from_0 = shmat(shmid2, NULL, 0);
-        *counter_from_0 = low;
-
-        counter_from_total_over_4 = shmat(shmid3, NULL, 0);
-        *counter_from_total_over_4 = high / 4;
-
-        // printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
-
-        for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) { // copy 0-4 array element to shmc_1
-            *(shmc_1 + i) = array[i];
-        }
-
-        mergesort_4_way_rec(shmc_1, *counter_from_0, *counter_from_total_over_4);
-
-        printf("Process ID: %d; Sorted %d integers: ", getpid(), n);
-
-        for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
-            printf("%d ", *(shmc_1 + i));
-        }
-
-        printf("\n");
-
-        *counter_from_0 = *counter_from_0 + n;
-        *counter_from_total_over_4 = *counter_from_total_over_4 + n;
-
-        //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
-
-
-
-        shmdt(shmc_1);
-        shmdt(counter_from_0);
-        shmdt(counter_from_total_over_4);
-
-        _exit(0);
-    } else { // Parent process
+        shm_array = shmat(shmid, NULL, 0);
+        mergesort_4_way_rec(shm_array, 0, each_part);
+        printf("Process 1 ID: %d; Sorted %d integers: ", getpid(), each_part);
+        printArray(shm_array, 0, each_part);
+        shmdt(shm_array);
+        exit(0);
+    }
+    else{ // Parent process
 
         pid_t fpid_2 = fork(); // fork the 2nd Child process
         if (fpid_2 < 0)
             printf("Error in executing fork!");
-
         else if (fpid_2 == 0) { // Child process 2
-            shmc_1 = shmat(shmid1, NULL, 0);
-            counter_from_0 = shmat(shmid2, NULL, 0);
-            counter_from_total_over_4 = shmat(shmid3, NULL, 0);
-
-            //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
-
-            for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
-                *(shmc_1 + i) = array[i];
-            }
-
-            mergesort_4_way_rec(shmc_1, *counter_from_0, *counter_from_total_over_4);
-
-            printf("Process ID: %d; Sorted %d integers: ", getpid(), n);
-
-            for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
-                printf("%d ", *(shmc_1 + i));
-            }
-
-            printf("\n");
-
-            *counter_from_0 = *counter_from_0 + n;
-            *counter_from_total_over_4 = *counter_from_total_over_4 + n;
-
-            //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
-
-            shmdt(shmc_1);
-            shmdt(counter_from_0);
-            shmdt(counter_from_total_over_4);
-
-            _exit(0);
-
-        } else { // Parent process
+            shm_array = shmat(shmid, NULL, 0);
+            mergesort_4_way_rec(shm_array, each_part, each_part * 2);
+            printf("Process 2 ID: %d; Sorted %d integers: ", getpid(), each_part);
+            printArray(shm_array, each_part, each_part * 2);
+            shmdt(shm_array);
+            exit(0);
+        }
+        else{ // Parent process
 
             pid_t fpid_3 = fork(); // fork the 3rd Child process
             if (fpid_3 < 0)
                 printf("Error in executing fork!");
 
             else if (fpid_3 == 0) { // Child process 3
-                shmc_1 = shmat(shmid1, NULL, 0);
-                counter_from_0 = shmat(shmid2, NULL, 0);
-                counter_from_total_over_4 = shmat(shmid3, NULL, 0);
+                shm_array = shmat(shmid, NULL, 0);
+                mergesort_4_way_rec(shm_array, each_part * 2, each_part * 3);
+                printf("Process 3 ID: %d; Sorted %d integers: ", getpid(), each_part);
+                printArray(shm_array, each_part * 2, each_part * 3);
+                shmdt(shm_array);
+                exit(0);
+            }
+            else{ // Parent process
+                mergesort_4_way_rec(shm_array, each_part * 3, each_part * 4);
+                printf("Process P ID: %d; Sorted %d integers: ", getpid(), each_part);
+                printArray(shm_array, each_part * 3, each_part * 4);
 
-                //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
-
-                for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
-                    *(shmc_1 + i) = array[i];
+                while(wait(NULL)>0);
+                mergesort_4_way_rec(shm_array, 0, array_size);
+                printf("Process P ID: %d; Sorted %d integers: ", getpid(), array_size);
+                printArray(shm_array, 0, array_size);
+                for (int i = 0; i < array_size; i++) {
+                    *&array[i] = *(shm_array + i);
                 }
-
-                mergesort_4_way_rec(shmc_1, *counter_from_0, *counter_from_total_over_4);
-
-                printf("Process ID: %d; Sorted %d integers: ", getpid(), n);
-
-                for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
-                    printf("%d ", *(shmc_1 + i));
-                }
-
-                printf("\n");
-
-                *counter_from_0 = *counter_from_0 + n;
-                *counter_from_total_over_4 = *counter_from_total_over_4 + n;
-
-                //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
-
-                shmdt(shmc_1);
-                shmdt(counter_from_0);
-                shmdt(counter_from_total_over_4);
-
-                _exit(0);
-
-            } else { // Parent process
-
-                while (wait(NULL) > 0); // wait all child process
-
-                shmc_1 = shmat(shmid1, NULL, 0);
-                counter_from_0 = shmat(shmid2, NULL, 0);
-                counter_from_total_over_4 = shmat(shmid3, NULL, 0);
-
-                //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
-
-                for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
-                    *(shmc_1 + i) = array[i];
-                }
-
-                mergesort_4_way_rec(shmc_1, *counter_from_0, *counter_from_total_over_4);
-
-                printf("Process ID: %d; Sorted %d integers: ", getpid(), n);
-
-                for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
-                    printf("%d ", *(shmc_1 + i));
-                }
-
-                printf("\n");
-
-                *counter_from_0 = *counter_from_0 + n;
-                *counter_from_total_over_4 = *counter_from_total_over_4 + n;
-
-
-                mergesort_4_way_rec(shmc_1, low, high);
-                printf("Process ID: %d; Sorted %d integers: ", getpid(), high);
-
-                for (int i = low; i < high; i++) {
-                    printf("%d ", *(shmc_1 + i));
-                }
-                printf("\n");
-                shmdt(shmc_1);
-                shmdt(counter_from_0);
-                shmdt(counter_from_total_over_4);
-
-                shmctl(shmid1, IPC_RMID, NULL);
-                shmctl(shmid2, IPC_RMID, NULL);
-                shmctl(shmid3, IPC_RMID, NULL);
+                shmdt(shm_array);
+                shmctl(shmid, IPC_RMID, NULL);
 
             }
         }
     }
 }
 
+//    int *shmc_1;
+//    int shmid1, shmid2, shmid3;
+//
+//    int *counter_from_0;
+//    int *counter_from_total_over_4;
+//    int n = high / 4;
+//
+//    int size_data1 = high * sizeof(int);
+//    int size_data2 = 1 * sizeof(int);
+//    int size_data3 = 1 * sizeof(int);
+//
+//
+//    shmid1 = shmget(IPC_PRIVATE, size_data1, 0666 | IPC_CREAT);
+//    shmid2 = shmget(IPC_PRIVATE, size_data2, 0666 | IPC_CREAT);
+//    shmid3 = shmget(IPC_PRIVATE, size_data3, 0666 | IPC_CREAT);
+//
+//
+//    pid_t fpid_1 = fork(); // fork the 1st Child process
+//    if (fpid_1 < 0)
+//        printf("Error in executing fork!");
+//
+//    else if (fpid_1 == 0) { // Child process 1
+//        shmc_1 = shmat(shmid1, NULL, 0);
+//
+//        counter_from_0 = shmat(shmid2, NULL, 0);
+//        *counter_from_0 = low;
+//
+//        counter_from_total_over_4 = shmat(shmid3, NULL, 0);
+//        *counter_from_total_over_4 = high / 4;
+//
+//        // printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+//
+//        for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) { // copy 0-4 array element to shmc_1
+//            *(shmc_1 + i) = array[i];
+//        }
+//
+//        mergesort_4_way_rec(shmc_1, *counter_from_0, *counter_from_total_over_4);
+//
+//        printf("Process ID: %d; Sorted %d integers: ", getpid(), n);
+//
+//        for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
+//            printf("%d ", *(shmc_1 + i));
+//        }
+//
+//        printf("\n");
+//
+//        *counter_from_0 = *counter_from_0 + n;
+//        *counter_from_total_over_4 = *counter_from_total_over_4 + n;
+//
+//        //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+//
+//
+//
+//        shmdt(shmc_1);
+//        shmdt(counter_from_0);
+//        shmdt(counter_from_total_over_4);
+//
+//        _exit(0);
+//    } else { // Parent process
+//
+//        pid_t fpid_2 = fork(); // fork the 2nd Child process
+//        if (fpid_2 < 0)
+//            printf("Error in executing fork!");
+//
+//        else if (fpid_2 == 0) { // Child process 2
+//            shmc_1 = shmat(shmid1, NULL, 0);
+//            counter_from_0 = shmat(shmid2, NULL, 0);
+//            counter_from_total_over_4 = shmat(shmid3, NULL, 0);
+//
+//            //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+//
+//            for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
+//                *(shmc_1 + i) = array[i];
+//            }
+//
+//            mergesort_4_way_rec(shmc_1, *counter_from_0, *counter_from_total_over_4);
+//
+//            printf("Process ID: %d; Sorted %d integers: ", getpid(), n);
+//
+//            for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
+//                printf("%d ", *(shmc_1 + i));
+//            }
+//
+//            printf("\n");
+//
+//            *counter_from_0 = *counter_from_0 + n;
+//            *counter_from_total_over_4 = *counter_from_total_over_4 + n;
+//
+//            //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+//
+//            shmdt(shmc_1);
+//            shmdt(counter_from_0);
+//            shmdt(counter_from_total_over_4);
+//
+//            _exit(0);
+//
+//        } else { // Parent process
+//
+//            pid_t fpid_3 = fork(); // fork the 3rd Child process
+//            if (fpid_3 < 0)
+//                printf("Error in executing fork!");
+//
+//            else if (fpid_3 == 0) { // Child process 3
+//                shmc_1 = shmat(shmid1, NULL, 0);
+//                counter_from_0 = shmat(shmid2, NULL, 0);
+//                counter_from_total_over_4 = shmat(shmid3, NULL, 0);
+//
+//                //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+//
+//                for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
+//                    *(shmc_1 + i) = array[i];
+//                }
+//
+//                mergesort_4_way_rec(shmc_1, *counter_from_0, *counter_from_total_over_4);
+//
+//                printf("Process ID: %d; Sorted %d integers: ", getpid(), n);
+//
+//                for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
+//                    printf("%d ", *(shmc_1 + i));
+//                }
+//
+//                printf("\n");
+//
+//                *counter_from_0 = *counter_from_0 + n;
+//                *counter_from_total_over_4 = *counter_from_total_over_4 + n;
+//
+//                //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+//
+//                shmdt(shmc_1);
+//                shmdt(counter_from_0);
+//                shmdt(counter_from_total_over_4);
+//
+//                _exit(0);
+//
+//            } else { // Parent process
+//
+//                while (wait(NULL) > 0); // wait all child process
+//
+//                shmc_1 = shmat(shmid1, NULL, 0);
+//                counter_from_0 = shmat(shmid2, NULL, 0);
+//                counter_from_total_over_4 = shmat(shmid3, NULL, 0);
+//
+//                //printf("counter_from_0: %d; counter_from_total_over_4: %d \n", *counter_from_0, *counter_from_total_over_4);
+//
+//                for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
+//                    *(shmc_1 + i) = array[i];
+//                }
+//
+//                mergesort_4_way_rec(shmc_1, *counter_from_0, *counter_from_total_over_4);
+//
+//                printf("Process ID: %d; Sorted %d integers: ", getpid(), n);
+//
+//                for (int i = *counter_from_0; i < *counter_from_total_over_4; i++) {
+//                    printf("%d ", *(shmc_1 + i));
+//                }
+//
+//                printf("\n");
+//
+//                *counter_from_0 = *counter_from_0 + n;
+//                *counter_from_total_over_4 = *counter_from_total_over_4 + n;
+//
+//
+//                mergesort_4_way_rec(shmc_1, low, high);
+//                printf("Process ID: %d; Sorted %d integers: ", getpid(), high);
+//
+//                for (int i = low; i < high; i++) {
+//                    printf("%d ", *(shmc_1 + i));
+//                }
+//                printf("\n");
+//                shmdt(shmc_1);
+//                shmdt(counter_from_0);
+//                shmdt(counter_from_total_over_4);
+//
+//                shmctl(shmid1, IPC_RMID, NULL);
+//                shmctl(shmid2, IPC_RMID, NULL);
+//                shmctl(shmid3, IPC_RMID, NULL);
+//
+//            }
+//        }
+//    }
+
+
 
 void recursiveMergesort(int* array, int low, int high, int max_num)
 {
 	// max_num: the maximum number of integers a process can handle
 	// Q2.2 Write your solution
-	
+
 
 }
 
