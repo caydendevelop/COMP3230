@@ -38,13 +38,13 @@ void merge_4_way(int* array, int low, int mid1, int mid2, int mid3, int high) {
     }
 
 
-    int i = 0, j = 0, k = 0, p = 0, l = low;  
+    int i = 0, j = 0, k = 0, p = 0, l = low;
 
     // choose smaller of the smallest in the three ranges  
     while (l < high) {
         int min_value = INT_MAX;
         int min_index = -1;
-        
+
         if(i < n1 && min_value >= arr1[i]) {
             min_value = arr1[i];
             min_index = 0;
@@ -67,33 +67,33 @@ void merge_4_way(int* array, int low, int mid1, int mid2, int mid3, int high) {
 
 
         if(min_index == 0) {
-            array[l++] = arr1[i++]; 
+            array[l++] = arr1[i++];
         } else if (min_index == 1) {
-            array[l++] = arr2[j++]; 
+            array[l++] = arr2[j++];
         } else if(min_index == 2) {
-            array[l++] = arr3[k++]; 
+            array[l++] = arr3[k++];
         } else if(min_index == 3) {
-            array[l++] = arr4[p++]; 
+            array[l++] = arr4[p++];
         } else {
             printf("error occurs! \n");
             return;
         }
-    }  
-}  
+    }
+}
 
 void swap(int *a, int *b) {
     int tmp = *a;
     *a = *b;
     *b = tmp;
-} 
-  
+}
+
 /* Performing the merge sort algorithm on the  
 given array of values in the rangeof indices  
 [low, high). low is minimum index, high is  
 maximum index (exclusive) */
 void mergesort_4_way_rec(int* array, int low, int high) {
     // If array size is 1 then do nothing  
-    if (high - low < 2)  
+    if (high - low < 2)
         return;
 
     if (high - low == 2) {
@@ -102,9 +102,9 @@ void mergesort_4_way_rec(int* array, int low, int high) {
         array[low] = x;
         array[low+1] = y;
         return;
-    }  
+    }
 
-     if (high - low == 3) {
+    if (high - low == 3) {
         int x = array[low], y = array[low+1], z = array[low+2];
         if (x > y) swap(&x, &y);
         if (y > z) swap(&y, &z);
@@ -113,10 +113,10 @@ void mergesort_4_way_rec(int* array, int low, int high) {
         array[low+1] = y;
         array[low+2] = z;
         return;
-     }  
-  
+    }
+
     // Splitting array into 3 parts  
-	int length = high - low;
+    int length = high - low;
     int quarter = length / 4;
     int remainder = length % 4;
     int mid1 = low + quarter;
@@ -126,18 +126,18 @@ void mergesort_4_way_rec(int* array, int low, int high) {
         mid3++;
     if (remainder == 3){
         mid2++;
-		mid3 +=2;
+        mid3 +=2;
     }
 
     // Sorting 3 arrays recursively  
-    mergesort_4_way_rec(array, low, mid1);  
-    mergesort_4_way_rec(array, mid1, mid2);  
-    mergesort_4_way_rec(array, mid2, mid3);  
-    mergesort_4_way_rec(array, mid3, high);  
-  
+    mergesort_4_way_rec(array, low, mid1);
+    mergesort_4_way_rec(array, mid1, mid2);
+    mergesort_4_way_rec(array, mid2, mid3);
+    mergesort_4_way_rec(array, mid3, high);
+
     // Merging the sorted arrays  
-    merge_4_way(array, low, mid1, mid2, mid3, high);  
-} 
+    merge_4_way(array, low, mid1, mid2, mid3, high);
+}
 
 
 /* from K&R
@@ -151,28 +151,28 @@ int rand()
 
 int* generateIntArray(int size)
 {
-	int * array = (int*) malloc(size*sizeof(int));
-	for (int i=0; i < size; i++){
+    int * array = (int*) malloc(size*sizeof(int));
+    for (int i=0; i < size; i++){
         array[i]=rand();
     }
-	
-	return array;
+
+    return array;
 }
 
 void printArray(int* array, int low, int high)
 {
-	for(int i=0;i < high - low; i++){
-		printf("%d ", array[low + i]);
-	}
-	printf("\n");
+    for(int i=0;i < high - low; i++){
+        printf("%d ", array[low + i]);
+    }
+    printf("\n");
 }
 
 
 
 void bubble_sort(int *array, int size)
 {
-	int x,y,t;
-	for (x=0; x < size-1; x++)
+    int x,y,t;
+    for (x=0; x < size-1; x++)
         for (y=0; y < size-x-1; y++)
             if (array[y] > array[y+1])
             {
@@ -184,122 +184,105 @@ void bubble_sort(int *array, int size)
 
 bool verifySortResults(int* array_bubble, int* array_mergesort, int size)
 {
-	int num_unequal = 0;
-	for(int i = 0; i< size; i++){
-		if(array_bubble[i] != 	array_mergesort[i])
-			num_unequal++;
-	}
-	
-	if(num_unequal!=0){
-		printf("The sort result by merge sort is not correct. The number of unequal values: %d.\n", num_unequal);
-		return false;
-	}
-	else{
-		printf("The sort result by merge sort is corrent, verified by bubble sort.\n");
-		return true;
-	}
+    int num_unequal = 0;
+    for(int i = 0; i< size; i++){
+        if(array_bubble[i] != 	array_mergesort[i])
+            num_unequal++;
+    }
+
+    if(num_unequal!=0){
+        printf("The sort result by merge sort is not correct. The number of unequal values: %d.\n", num_unequal);
+        return false;
+    }
+    else{
+        printf("The sort result by merge sort is corrent, verified by bubble sort.\n");
+        return true;
+    }
 }
 
 
 
-void mergesort4Way4Processes(int* array, int low, int high)
-{
-	// Q2.1: Write your solution
+
+void mergesort4Way4Processes(int* array, int low, int high) {
+    // Q2.1: Write your solution
+    int *shm_array;
     int shmid;
-    int *shmc_1, *shmc_2, *shmc_3, *shmp;
-//    int i = 0;
-//    int j = 0;
-    int size_data = (high + 1) * sizeof(int);
-    shmid = shmget(IPC_PRIVATE, size_data, 0666 |IPC_CREAT);
+    int array_size = high - low;
+    int each_part = array_size / 4;
+    int size_data = array_size * sizeof(int);
+    shmid = shmget(IPC_PRIVATE, size_data, 0666 | IPC_CREAT);
+
+    shm_array = shmat(shmid, NULL, 0);
+    for (int i = 0; i < array_size; i++) {
+        *(shm_array + i) = array[i];
+    }
 
     pid_t fpid_1 = fork(); // fork the 1st Child process
-    if(fpid_1 < 0)
+    if (fpid_1 < 0)
         printf("Error in executing fork!");
 
-    else if(fpid_1 == 0) { // Child process 1
-        shmc_1 = shmat(shmid, 0, 0);  // Attach the program to the memory.
-
-        for (int i = 0; i < 4; i++) { // copy 0-3 array element to shmc_1
-            *(shmc_1 + i) = array[i];
-        }
-
-        mergesort_4_way_rec(shmc_1, 0, 4);
-        printf("Process 1 ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), *(shmc_1), *(shmc_1 + 1), *(shmc_1 + 2), *(shmc_1 + 3));
-        shmdt(shmc_1);                // Detach the program from the memory
-        _exit(0);
+    else if (fpid_1 == 0) { // Child process 1
+        shm_array = shmat(shmid, NULL, 0);
+        mergesort_4_way_rec(shm_array, 0, each_part);
+        printf("Process 1 ID: %d; Sorted %d integers: ", getpid(), each_part);
+        printArray(shm_array, 0, each_part);
+        shmdt(shm_array);
+        exit(0);
     }
+    else{ // Parent process
 
-    else { // Parent process
-        // kill(fpid_1, SIGSTOP); // send signal to stop the Child process 1
         pid_t fpid_2 = fork(); // fork the 2nd Child process
-        if(fpid_2 < 0)
+        if (fpid_2 < 0)
             printf("Error in executing fork!");
-
-        else if(fpid_2 == 0) { // Child process 2
-            shmc_2 = shmat(shmid, 0, 0);  // Attach the program to the memory.
-
-            for (int i = 4; i < 8; i++) { // copy 4-7 array element to shmc_2
-                *(shmc_2 + i) = array[i];
-            }
-
-            mergesort_4_way_rec(shmc_2, 4, 8);
-            printf("Process 2 ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), *(shmc_2 + 4), *(shmc_2 + 5), *(shmc_2 + 6), *(shmc_2 + 7));
-
-            shmdt(shmc_2);                // Detach the program from the memory
-            _exit(0);
+        else if (fpid_2 == 0) { // Child process 2
+            shm_array = shmat(shmid, NULL, 0);
+            mergesort_4_way_rec(shm_array, each_part, each_part * 2);
+            printf("Process 2 ID: %d; Sorted %d integers: ", getpid(), each_part);
+            printArray(shm_array, each_part, each_part * 2);
+            shmdt(shm_array);
+            exit(0);
         }
+        else{ // Parent process
 
-        else { // Parent process
-            // kill(fpid_2, SIGSTOP); // send signal to stop the Child process 2
             pid_t fpid_3 = fork(); // fork the 3rd Child process
-            if(fpid_3 < 0)
+            if (fpid_3 < 0)
                 printf("Error in executing fork!");
 
-            else if(fpid_3 == 0) { // Child process 3
-                shmc_3 = shmat(shmid, 0, 0);  // Attach the program to the memory.
-
-                for (int i = 8; i < 12; i++) { // copy 8-11 array element to shmc_3
-                    *(shmc_3 + i) = array[i];
-                }
-
-                mergesort_4_way_rec(shmc_3, 8, 12);
-                printf("Process 3 ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), *(shmc_3 + 8), *(shmc_3 + 9), *(shmc_3 + 10), *(shmc_3 + 11));
-                shmdt(shmc_3);                // Detach the program from the memory
-                _exit(0);
+            else if (fpid_3 == 0) { // Child process 3
+                shm_array = shmat(shmid, NULL, 0);
+                mergesort_4_way_rec(shm_array, each_part * 2, each_part * 3);
+                printf("Process 3 ID: %d; Sorted %d integers: ", getpid(), each_part);
+                printArray(shm_array, each_part * 2, each_part * 3);
+                shmdt(shm_array);
+                exit(0);
             }
+            else{ // Parent process
+                mergesort_4_way_rec(shm_array, each_part * 3, each_part * 4);
+                printf("Process P ID: %d; Sorted %d integers: ", getpid(), each_part);
+                printArray(shm_array, each_part * 3, each_part * 4);
 
-            else { // Parent process
-                kill(fpid_1, SIGSTOP); // send signal to stop the Child process 1
-                shmp = shmat(shmid, 0, 0);  // Attach the program to the memory.
-
-                for (int i = 12; i < 16; i++) { // copy 12-15 array element to shmp
-                    *(shmp + i) = array[i];
+                while(wait(NULL)>0);
+                mergesort_4_way_rec(shm_array, 0, array_size);
+                printf("Process P ID: %d; Sorted %d integers: ", getpid(), array_size);
+                printArray(shm_array, 0, array_size);
+                for (int i = 0; i < array_size; i++) {
+                    *&array[i] = *(shm_array + i);
                 }
-                mergesort_4_way_rec(shmp, 12, 16);
-                printf("Process P ID: %d; Sorted 4 integers: %d %d %d %d\n", getpid(), *(shmp + 12), *(shmp + 13), *(shmp + 14), *(shmp + 15));
-                kill(fpid_1, SIGCONT); // send signal to Child process 1. tell it to continue.
-
-                while(wait(NULL) >0); // wait all child process
-                mergesort_4_way_rec(shmp, 0, 16);
-                printf("Process P ID: %d; Sorted 16 integers: ", getpid());
-
-                for(int i = 0; i < 16; i++){
-                    printf("%d ", *(shmp + i));
-                }
-                printf("\n");
-                shmdt(shmp);                  // Detach the program from the memory
-
+                shmdt(shm_array);
                 shmctl(shmid, IPC_RMID, NULL);
+
             }
         }
     }
 }
+
+
 
 void recursiveMergesort(int* array, int low, int high, int max_num)
 {
-	// max_num: the maximum number of integers a process can handle
-	// Q2.2 Write your solution
-	
+    // max_num: the maximum number of integers a process can handle
+    // Q2.2 Write your solution
+
 
 }
 
